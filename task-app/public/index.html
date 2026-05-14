@@ -32,13 +32,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .status-bar .dot.online{background:var(--green);box-shadow:0 0 6px rgba(90,158,111,0.5)}
 .status-bar .dot.offline{background:var(--red);box-shadow:0 0 6px rgba(184,92,74,0.5)}
 
-/* Role switch */
-.role-row{display:flex;gap:6px;background:var(--bg2);border-radius:100px;padding:3px;margin:0 auto 16px;width:fit-content;border:1px solid var(--border)}
-.role-btn{padding:8px 24px;border:none;background:transparent;color:var(--text3);font-family:var(--font);font-size:.85rem;font-weight:500;cursor:pointer;border-radius:100px;transition:var(--t)}
-.role-btn.active{color:var(--bg);background:var(--amber-glow);box-shadow:0 2px 10px rgba(212,146,58,0.25)}
-.role-btn:not(.active):hover{color:var(--text2)}
-
-/* Tabs (teacher) */
+/* Teacher tabs */
 .tabs{display:flex;gap:2px;background:var(--bg2);border-radius:var(--radius);padding:3px;margin-bottom:18px;border:1px solid var(--border)}
 .tab{padding:8px 16px;border:none;background:transparent;color:var(--text3);font-family:var(--font);font-size:.82rem;font-weight:500;cursor:pointer;border-radius:var(--radius-sm);transition:var(--t);flex:1;text-align:center}
 .tab.active{background:var(--amber);color:var(--bg);box-shadow:0 2px 10px rgba(212,146,58,0.25)}
@@ -66,11 +60,15 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .btn-secondary:hover{background:var(--bg4);color:var(--text)}
 .btn-sm{padding:4px 10px;font-size:.76rem}
 .btn-xs{padding:2px 8px;font-size:.7rem;border-radius:4px}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#d06a56;transform:translateY(-1px)}
 
 .tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .tag{display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);padding:4px 10px;border-radius:100px;font-size:.8rem;color:var(--text2)}
 .tag .remove{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:.85rem;padding:0 2px;line-height:1;transition:var(--t);font-family:var(--font)}
 .tag .remove:hover{color:var(--red)}
+.tag .role-tag{font-size:.6rem;background:var(--amber);color:var(--bg);padding:1px 6px;border-radius:100px;font-weight:600}
+.tag .role-tag.student{background:var(--green);color:#fff}
 
 .item-list{display:flex;flex-direction:column;gap:5px;margin:6px 0 10px}
 .item-row{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px}
@@ -138,20 +136,38 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--amber-dim),var(--amber-glow));border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1);width:0}
 .progress-fill.all-done{background:linear-gradient(90deg,var(--green),#6abf7f)}
 
-/* Login overlay */
-.login-overlay{position:fixed;inset:0;z-index:200;background:rgba(26,18,11,0.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s ease}
-.login-overlay.show{opacity:1;pointer-events:auto}
-.login-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px 36px 28px;max-width:360px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.4);transform:translateY(10px);transition:transform .4s cubic-bezier(.4,0,.2,1)}
-.login-overlay.show .login-card{transform:translateY(0)}
-.login-card .icon{font-size:2.2rem;margin-bottom:6px;display:block}
-.login-card h2{font-size:1.05rem;font-weight:600;margin-bottom:3px;color:var(--text)}
-.login-card .info{font-size:.76rem;color:var(--text3);margin-bottom:14px}
-.login-card input{width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:.95rem;text-align:center;outline:none;transition:var(--t)}
-.login-card input:focus{border-color:var(--amber-dim);box-shadow:0 0 0 3px rgba(212,146,58,0.1)}
-.login-card .btn{display:block;width:100%;margin-top:12px;padding:10px;border:none;border-radius:var(--radius-sm);background:var(--amber);color:var(--bg);font-family:var(--font);font-size:.9rem;font-weight:600;cursor:pointer;transition:var(--t)}
-.login-card .btn:hover{background:var(--amber-glow);box-shadow:0 4px 15px rgba(212,146,58,0.3)}
-.login-card .err{font-size:.73rem;color:var(--red);margin-top:6px;min-height:1.2em}
-.login-card .hint{font-size:.7rem;color:var(--text3);margin-top:8px}
+/* ============ AUTH SCREEN ============ */
+.auth-overlay{position:fixed;inset:0;z-index:300;background:rgba(26,18,11,0.9);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .5s ease}
+.auth-overlay.show{opacity:1;pointer-events:auto}
+.auth-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 32px 32px;max-width:380px;width:92%;box-shadow:0 8px 40px rgba(0,0,0,0.4);transform:translateY(10px);transition:transform .4s cubic-bezier(.4,0,.2,1)}
+.auth-overlay.show .auth-card{transform:translateY(0)}
+.auth-tabs{display:flex;gap:2px;background:var(--bg2);border-radius:var(--radius-sm);padding:2px;margin-bottom:20px;border:1px solid var(--border)}
+.auth-tab{padding:8px 0;border:none;background:transparent;color:var(--text3);font-family:var(--font);font-size:.88rem;font-weight:500;cursor:pointer;border-radius:var(--radius-sm);transition:var(--t);flex:1;text-align:center}
+.auth-tab.active{background:var(--amber);color:var(--bg);box-shadow:0 2px 10px rgba(212,146,58,0.25)}
+.auth-form{display:none;animation:fadeUp .3s ease}
+.auth-form.active{display:block}
+.auth-card .icon{font-size:2rem;margin-bottom:4px;display:block;text-align:center}
+.auth-card h2{font-size:1rem;font-weight:600;text-align:center;margin-bottom:2px;color:var(--text)}
+.auth-card .info{font-size:.74rem;color:var(--text3);text-align:center;margin-bottom:14px}
+.auth-card .field{margin-bottom:10px}
+.auth-card .field label{display:block;font-size:.72rem;font-weight:500;color:var(--text3);margin-bottom:3px}
+.auth-card .field input,.auth-card .field select{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:.85rem;outline:none;transition:var(--t)}
+.auth-card .field input:focus,.auth-card .field select:focus{border-color:var(--amber-dim);box-shadow:0 0 0 3px rgba(212,146,58,0.1)}
+.auth-card .field select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238f8273'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+.auth-card .btn-full{display:block;width:100%;margin-top:4px;padding:9px;border:none;border-radius:var(--radius-sm);background:var(--amber);color:var(--bg);font-family:var(--font);font-size:.88rem;font-weight:600;cursor:pointer;transition:var(--t)}
+.auth-card .btn-full:hover{background:var(--amber-glow);box-shadow:0 4px 15px rgba(212,146,58,0.3)}
+.auth-card .btn-full:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.auth-card .err{font-size:.72rem;color:var(--red);margin-top:4px;min-height:1.2em}
+.auth-card .switch-link{text-align:center;margin-top:12px;font-size:.78rem;color:var(--text3)}
+.auth-card .switch-link span{color:var(--amber);cursor:pointer;font-weight:500}
+.auth-card .switch-link span:hover{color:var(--amber-glow)}
+
+/* User bar */
+.user-bar{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 14px;margin-bottom:16px}
+.user-bar .left{display:flex;align-items:center;gap:8px;font-size:.83rem;color:var(--text2)}
+.user-bar .left .uname{color:var(--amber);font-weight:600}
+.user-bar .left .role-badge{font-size:.64rem;background:var(--bg2);border:1px solid var(--border);padding:1px 8px;border-radius:100px;color:var(--text3)}
+.user-bar .left .role-badge.teacher{color:var(--amber);border-color:var(--amber-dim)}
 
 /* Image overlay */
 .img-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:30px;cursor:pointer}
@@ -178,7 +194,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .form-row{grid-template-columns:1fr}
   .card{padding:14px 14px 16px}
   .tabs .tab{font-size:.78rem;padding:6px 8px}
-  .login-card{padding:24px 20px}
+  .auth-card{padding:20px 16px 24px}
 }
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -186,14 +202,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </style>
 </head>
 <body>
-<div class="container">
+<div class="container" id="appContainer">
 
   <header class="header">
     <h1>📚 每日任务管理系统</h1>
     <p class="sub" id="serverInfo">连接中...</p>
   </header>
 
-  <!-- Status -->
   <div class="status-bar">
     <span class="dot" id="statusDot"></span>
     <span id="statusText">连接服务器中...</span>
@@ -201,40 +216,49 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <span id="syncInfo">等待同步</span>
   </div>
 
-  <!-- Role switch -->
-  <div class="role-row">
-    <button class="role-btn active" data-role="teacher">👨‍🏫 教师端</button>
-    <button class="role-btn" data-role="student">👩‍🎓 学生端</button>
+  <!-- User bar -->
+  <div class="user-bar" id="userBar" style="display:none">
+    <div class="left">
+      <span>👤</span>
+      <span class="uname" id="userName">—</span>
+      <span class="role-badge" id="userRoleBadge">教师</span>
+    </div>
+    <button class="btn btn-sm btn-secondary" id="logoutBtn">退出登录</button>
   </div>
 
   <!-- ===== TEACHER ===== -->
   <div class="panel active" id="teacherPanel">
     <div class="tabs">
-      <button class="tab" data-tab="t-students">👥 学生管理</button>
-      <button class="tab active" data-tab="t-publish">📝 发布任务</button>
+      <button class="tab active" data-tab="t-users">👥 用户管理</button>
+      <button class="tab" data-tab="t-publish">📝 发布任务</button>
       <button class="tab" data-tab="t-review">🔍 查看任务</button>
     </div>
 
-    <!-- Students -->
-    <div class="panel" id="t-students">
+    <div class="panel active" id="t-users">
       <div class="card">
-        <div class="card-title">👥 添加学生</div>
-        <div class="add-row">
-          <input type="text" id="studentInput" placeholder="输入学生姓名..." maxlength="10">
-          <button class="btn btn-primary" id="addStudentBtn">添加</button>
+        <div class="card-title">👥 添加用户</div>
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+          <input type="text" id="userNameInput" placeholder="输入姓名..." maxlength="10" style="flex:2;min-width:120px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:.85rem;outline:none">
+          <select id="userRoleSelect" style="flex:1;min-width:80px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:.85rem;outline:none;cursor:pointer">
+            <option value="student">学生</option>
+            <option value="teacher">教师</option>
+          </select>
+          <button class="btn btn-primary" id="addUserBtn">添加</button>
         </div>
-        <div id="studentList" class="tag-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 用户列表</div>
+        <div id="userList" class="tag-list"></div>
       </div>
     </div>
 
-    <!-- Publish -->
-    <div class="panel active" id="t-publish">
+    <div class="panel" id="t-publish">
       <div class="card">
         <div class="card-title">📝 新建任务</div>
         <div class="form-group" style="margin-bottom:6px">
           <label>👥 分配给</label>
           <div class="student-check-grid" id="studentCheckGrid"></div>
-          <div class="select-hint" id="studentSelectHint">请先在「学生管理」中添加学生</div>
+          <div class="select-hint" id="studentSelectHint" style="display:none">暂无学生，请先添加学生</div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -266,7 +290,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
     </div>
 
-    <!-- Review -->
     <div class="panel" id="t-review">
       <div class="card">
         <div class="card-title">🔍 查看学生完成情况</div>
@@ -286,11 +309,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <!-- ===== STUDENT ===== -->
   <div class="panel" id="studentPanel">
-    <div id="studentTopBar" style="display:none;display:flex;align-items:center;justify-content:space-between;margin:0 0 12px;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius)">
-      <span style="font-size:.83rem;color:var(--text2)">👤 <strong id="sName" style="color:var(--amber)">—</strong></span>
-      <button class="btn btn-sm btn-secondary" id="sLogout">切换</button>
-    </div>
-
     <div class="progress-card" id="sProgress" style="display:none">
       <div class="progress-top">
         <span class="label">📊 完成进度</span>
@@ -298,21 +316,62 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
       <div class="progress-bar"><div class="progress-fill" id="sFill"></div></div>
     </div>
-
-    <div id="sContent"><div class="empty"><span class="icon">👋</span><p>请在下方登录</p></div></div>
+    <div id="sContent"><div class="empty"><span class="icon">👋</span><p>请先登录</p></div></div>
   </div>
 </div>
 
-<!-- Login overlay -->
-<div class="login-overlay show" id="loginOverlay">
-  <div class="login-card">
-    <span class="icon">👩‍🎓</span>
-    <h2>学生登录</h2>
-    <p class="info">请输入老师登记的姓名</p>
-    <input type="text" id="loginInput" placeholder="你的姓名..." maxlength="10" autocomplete="off">
-    <button class="btn" id="loginBtn">进入</button>
-    <p class="err" id="loginErr"></p>
-    <p class="hint">按 Enter 确认</p>
+<!-- Auth overlay -->
+<div class="auth-overlay show" id="authOverlay">
+  <div class="auth-card">
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-aform="login">登录</button>
+      <button class="auth-tab" data-aform="register">注册</button>
+    </div>
+
+    <!-- Login -->
+    <div class="auth-form active" id="aform-login">
+      <span class="icon">🔑</span>
+      <h2>欢迎回来</h2>
+      <p class="info">输入姓名和密码登录</p>
+      <div class="field">
+        <label>姓名</label>
+        <input type="text" id="loginName" placeholder="你的姓名..." maxlength="10" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>密码</label>
+        <input type="password" id="loginPassword" placeholder="输入密码..." maxlength="20" autocomplete="off">
+      </div>
+      <p class="err" id="loginErr"></p>
+      <button class="btn-full" id="loginBtn">登录</button>
+      <div class="switch-link">还没有账号？<span onclick="switchAuthTab('register')">去注册</span></div>
+    </div>
+
+    <!-- Register -->
+    <div class="auth-form" id="aform-register">
+      <span class="icon">📝</span>
+      <h2>注册账号</h2>
+      <p class="info">设置姓名、密码和身份</p>
+      <div class="field">
+        <label>姓名</label>
+        <input type="text" id="regName" placeholder="你的姓名..." maxlength="10" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>密码</label>
+        <input type="password" id="regPassword" placeholder="设置密码（至少3位）..." maxlength="20" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>身份</label>
+        <select id="regRole">
+          <option value="student">学生</option>
+          <option value="teacher">教师</option>
+        </select>
+      </div>
+      <p class="err" id="regErr"></p>
+      <button class="btn-full" id="registerBtn">注册</button>
+      <div class="switch-link">已有账号？<span onclick="switchAuthTab('login')">去登录</span></div>
+    </div>
+
   </div>
 </div>
 
@@ -325,33 +384,29 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== Server config =====
+// ===== Config =====
 const API_BASE = window.location.origin;
-const POLL_INTERVAL = 3000; // 3 seconds
+const POLL_INTERVAL = 3000;
 
 // ===== State =====
-let data = { students: [], groups: [], nextGroupId: 1 };
-let studentName = '';
+let data = { users: [], groups: [], nextGroupId: 1 };
+let currentUser = null;
 let draftItems = [];
 let online = false;
 let lastSaveVersion = 0;
 
-// ===== Storage (server) =====
+// ===== Storage =====
 async function fetchData() {
   try {
     const r = await fetch(API_BASE + '/api/data');
     const j = await r.json();
-    if (j.ok && j.data) {
-      normalize(j.data);
-      return j.data;
-    }
+    if (j.ok && j.data) { normalize(j.data); return j.data; }
   } catch (e) {}
   return null;
 }
 
 async function saveDataToServer() {
   try {
-    // Attach version for conflict detection
     const payload = { ...data, _version: Date.now() };
     const r = await fetch(API_BASE + '/api/data', {
       method: 'POST',
@@ -359,23 +414,18 @@ async function saveDataToServer() {
       body: JSON.stringify(payload)
     });
     const j = await r.json();
-    if (j.ok) {
-      lastSaveVersion = payload._version;
-      return true;
-    }
+    if (j.ok) { lastSaveVersion = payload._version; return true; }
   } catch (e) {}
   return false;
 }
 
-async function checkServer() {
-  try {
-    const r = await fetch(API_BASE + '/api/status');
-    return r.ok;
-  } catch { return false; }
-}
-
 function normalize(d) {
-  if (!d.students) d.students = [];
+  // Migrate old format
+  if (d.students && !d.users) {
+    d.users = d.students.map(name => ({ name, role: 'student' }));
+    delete d.students;
+  }
+  if (!d.users) d.users = [];
   if (!d.groups) d.groups = [];
   if (!d.nextGroupId) d.nextGroupId = 1;
   d.groups.forEach(g => {
@@ -385,107 +435,213 @@ function normalize(d) {
   });
 }
 
-// ===== Init / Sync =====
+// ===== Sync =====
 let pollTimer = null;
-
 async function loadFromServer() {
   const d = await fetchData();
-  if (d) {
-    data = d;
-    setOnline(true);
-    return true;
-  }
-  setOnline(false);
-  return false;
+  if (d) { data = d; setOnline(true); return true; }
+  setOnline(false); return false;
 }
-
 async function syncSave() {
   const ok = await saveDataToServer();
-  setOnline(ok);
-  return ok;
+  setOnline(ok); return ok;
 }
-
 function setOnline(status) {
   online = status;
   const dot = document.getElementById('statusDot');
   const txt = document.getElementById('statusText');
   dot.className = 'dot ' + (status ? 'online' : 'offline');
-  txt.textContent = status ? '已连接服务器' : '连接断开（数据未保存）';
+  txt.textContent = status ? '已连接服务器' : '连接断开';
   document.getElementById('serverInfo').textContent = status ? '数据实时同步中' : '⚠️ 离线模式';
 }
-
 async function pollLoop() {
   const d = await fetchData();
   if (d) {
     setOnline(true);
-    // If server has newer data, reload
-    const serverVersion = d._version || 0;
-    if (serverVersion > lastSaveVersion) {
-      data = d;
-      normalize(data);
-      fullRender();
-      document.getElementById('syncInfo').textContent = '已同步';
-    } else {
-      document.getElementById('syncInfo').textContent = '最新';
-    }
-  } else {
-    setOnline(false);
-  }
+    const sv = d._version || 0;
+    if (sv > lastSaveVersion) { data = d; normalize(data); fullRender(); document.getElementById('syncInfo').textContent = '已同步'; }
+    else { document.getElementById('syncInfo').textContent = '最新'; }
+  } else { setOnline(false); }
 }
-
 function startPoll() { pollTimer = setInterval(pollLoop, POLL_INTERVAL); }
 
 // ===== Toast =====
 let tt = null;
-function toast(m, t = 'info') {
+function toast(m, t) {
   const e = document.getElementById('toast');
-  e.textContent = m; e.className = 'toast ' + t + ' show';
+  e.textContent = m; e.className = 'toast ' + (t||'info') + ' show';
   clearTimeout(tt); tt = setTimeout(() => e.classList.remove('show'), 2600);
 }
 
 // ===== Utilities =====
-function getToday() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
-function fmtCN(s) { const p = s.split('-'); return p[0] + '年' + parseInt(p[1]) + '月' + parseInt(p[2]) + '日'; }
-const WDS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-function wd(s) { return WDS[new Date(s + 'T00:00:00').getDay()]; }
+const SICONS = { 数学:'📐',语文:'📖',英语:'🌍',物理:'⚡',化学:'🧪',生物:'🧬',历史:'📜',地理:'🌏',政治:'⚖️',科学:'🔬' };
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-const SICONS = { 数学: '📐', 语文: '📖', 英语: '🌍', 物理: '⚡', 化学: '🧪', 生物: '🧬', 历史: '📜', 地理: '🌏', 政治: '⚖️', 科学: '🔬' };
+function fmtDue(d) { if (!d) return ''; const p = d.split('-'); return '📅 ' + p[0] + '年' + parseInt(p[1]) + '月' + parseInt(p[2]) + '日'; }
+function getStudents() { return data.users.filter(u => u.role === 'student').map(u => u.name); }
 
-function fmtDue(d) { if (!d) return ''; if (d.includes(':')) return '⏰ ' + d; const p = d.split('-'); return '📅 ' + p[0] + '年' + parseInt(p[1]) + '月' + parseInt(p[2]) + '日'; }
-
-// ===== Teacher functions =====
-function addStudent(name) {
-  name = name.trim();
-  if (!name) { toast('⚠️ 输入姓名', 'error'); return; }
-  if (data.students.includes(name)) { toast('⚠️ 已存在', 'error'); return; }
-  data.students.push(name);
-  syncSave().then(() => fullRender());
-  document.getElementById('studentInput').value = '';
-  toast('✅ 已添加：' + name, 'success');
+// ===== Auth Tab Switching =====
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.auth-form').forEach(x => x.classList.remove('active'));
+  document.querySelector(`.auth-tab[data-aform="${tab}"]`).classList.add('active');
+  document.getElementById('aform-' + tab).classList.add('active');
+  document.getElementById('loginErr').textContent = '';
+  document.getElementById('regErr').textContent = '';
 }
 
-function removeStudent(name) {
-  data.students = data.students.filter(s => s !== name);
-  data.groups.forEach(g => { g.assignedStudents = g.assignedStudents.filter(s => s !== name); if (g.completions) g.completions = g.completions.filter(c => c.student !== name); });
+document.querySelectorAll('.auth-tab').forEach(t => {
+  t.addEventListener('click', function() { switchAuthTab(this.dataset.aform); });
+});
+
+// ===== Login =====
+async function doLogin() {
+  const name = document.getElementById('loginName').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!name) { document.getElementById('loginErr').textContent = '请输入姓名'; return; }
+  if (!password) { document.getElementById('loginErr').textContent = '请输入密码'; return; }
+  try {
+    const r = await fetch(API_BASE + '/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, password })
+    });
+    const j = await r.json();
+    if (!j.ok) { document.getElementById('loginErr').textContent = j.error || '登录失败'; return; }
+    document.getElementById('loginErr').textContent = '';
+    currentUser = j.user;
+    localStorage.setItem('task_user_name', currentUser.name);
+    localStorage.setItem('task_user_role', currentUser.role);
+    document.getElementById('authOverlay').classList.remove('show');
+    enterApp();
+    toast('👋 欢迎回来，' + currentUser.name, 'success');
+  } catch (e) {
+    document.getElementById('loginErr').textContent = '网络错误，请重试';
+  }
+}
+
+// ===== Register =====
+async function doRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const role = document.getElementById('regRole').value;
+  const errEl = document.getElementById('regErr');
+
+  if (!name) { errEl.textContent = '请输入姓名'; return; }
+  if (!password || password.length < 3) { errEl.textContent = '密码至少3位'; return; }
+  errEl.textContent = '';
+
+  const btn = document.getElementById('registerBtn');
+  btn.disabled = true; btn.textContent = '注册中...';
+
+  try {
+    const r = await fetch(API_BASE + '/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, password, role })
+    });
+    const j = await r.json();
+    btn.disabled = false; btn.textContent = '注册';
+    if (!j.ok) { errEl.textContent = j.error || '注册失败'; return; }
+    currentUser = j.user;
+    localStorage.setItem('task_user_name', currentUser.name);
+    localStorage.setItem('task_user_role', currentUser.role);
+    document.getElementById('authOverlay').classList.remove('show');
+    enterApp();
+    toast('🎉 注册成功！欢迎，' + currentUser.name, 'success');
+    await loadFromServer();
+    fullRender();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = '注册';
+    errEl.textContent = '网络错误，请重试';
+  }
+}
+
+// ===== Logout =====
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('task_user_name');
+  localStorage.removeItem('task_user_role');
+  document.getElementById('userBar').style.display = 'none';
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('authOverlay').classList.add('show');
+  document.getElementById('loginName').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginErr').textContent = '';
+  document.getElementById('regName').value = '';
+  document.getElementById('regPassword').value = '';
+  document.getElementById('regErr').textContent = '';
+  // Show login tab
+  switchAuthTab('login');
+  renderStudent();
+}
+
+// ===== Enter App =====
+function enterApp() {
+  if (!currentUser) return;
+  document.getElementById('userBar').style.display = 'flex';
+  document.getElementById('userName').textContent = currentUser.name;
+  const badge = document.getElementById('userRoleBadge');
+  if (currentUser.role === 'teacher') {
+    badge.textContent = '教师'; badge.className = 'role-badge teacher';
+    document.getElementById('teacherPanel').classList.add('active');
+    document.getElementById('studentPanel').classList.remove('active');
+    fullRender();
+  } else {
+    badge.textContent = '学生'; badge.className = 'role-badge';
+    document.getElementById('studentPanel').classList.add('active');
+    document.getElementById('teacherPanel').classList.remove('active');
+    renderStudent();
+  }
+}
+
+// ===== User Management (Teacher) =====
+function addUser(name, role) {
+  name = name.trim();
+  if (!name) { toast('⚠️ 输入姓名', 'error'); return; }
+  if (data.users.some(u => u.name === name)) { toast('⚠️ 该用户已存在', 'error'); return; }
+  data.users.push({ name, role, password: '123456' });  // default password
+  syncSave().then(() => fullRender());
+  document.getElementById('userNameInput').value = '';
+  toast('✅ 已添加' + (role === 'teacher' ? '教师：' : '学生：') + name + '（默认密码 123456）', 'success');
+}
+
+function removeUser(name) {
+  if (currentUser && name === currentUser.name) { toast('⚠️ 不能删除自己', 'error'); return; }
+  data.users = data.users.filter(u => u.name !== name);
+  data.groups.forEach(g => {
+    g.assignedStudents = g.assignedStudents.filter(s => s !== name);
+    if (g.completions) g.completions = g.completions.filter(c => c.student !== name);
+  });
   syncSave().then(() => fullRender());
   toast('已移除：' + name, 'info');
 }
 
-function renderStudents() {
-  const c = document.getElementById('studentList');
-  if (!data.students.length) { c.innerHTML = '<span style="color:var(--text3);font-size:.8rem">暂无学生</span>'; return; }
-  c.innerHTML = data.students.map(s => `<span class="tag">${esc(s)}<button class="remove" onclick="removeStudent('${esc(s)}')">✕</button></span>`).join('');
+function renderUserList() {
+  const c = document.getElementById('userList');
+  if (!data.users.length) { c.innerHTML = '<span style="color:var(--text3);font-size:.8rem">暂无用户</span>'; return; }
+  c.innerHTML = data.users.map(u =>
+    `<span class="tag">${esc(u.name)}<span class="role-tag ${u.role}">${u.role === 'teacher' ? '教师' : '学生'}</span><button class="remove" onclick="removeUser('${esc(u.name)}')">✕</button></span>`
+  ).join('');
 }
 
+// ===== Publish =====
 function renderStudentChecks() {
   const c = document.getElementById('studentCheckGrid');
   const h = document.getElementById('studentSelectHint');
-  if (!data.students.length) { c.innerHTML = ''; h.style.display = 'block'; return; }
+  const students = getStudents();
+  if (!students.length) { c.innerHTML = ''; h.style.display = 'block'; return; }
   h.style.display = 'none';
-  c.innerHTML = data.students.map(s => `<label class="student-check-label"><input type="checkbox" value="${esc(s)}" checked><span class="ck"></span><span>${esc(s)}</span></label>`).join('');
+  c.innerHTML = students.map(s => `<label class="student-check-label"><input type="checkbox" value="${esc(s)}" checked><span class="ck"></span><span>${esc(s)}</span></label>`).join('');
 }
 
-function getSelectedStudents() { const r = []; document.querySelectorAll('#studentCheckGrid .student-check-label').forEach(l => { const cb = l.querySelector('input'); if (cb && cb.checked) r.push(cb.value); }); return r; }
+function getSelectedStudents() {
+  const r = [];
+  document.querySelectorAll('#studentCheckGrid .student-check-label').forEach(l => {
+    const cb = l.querySelector('input');
+    if (cb && cb.checked) r.push(cb.value);
+  });
+  return r;
+}
 
 function addDraftItem() {
   const inp = document.getElementById('taskItemInput');
@@ -498,7 +654,7 @@ function removeDraftItem(i) { draftItems.splice(i, 1); renderDraft(); }
 function renderDraft() {
   const c = document.getElementById('draftItems');
   if (!draftItems.length) { c.innerHTML = '<span style="color:var(--text3);font-size:.8rem;padding:4px 0">暂无任务项</span>'; return; }
-  c.innerHTML = draftItems.map((t, i) => `<div class="item-row"><span class="num">${i+1}</span><span class="text">${esc(t)}</span><button class="del" onclick="removeDraftItem(${i})">✕</button></div>`).join('');
+  c.innerHTML = draftItems.map((t,i) => `<div class="item-row"><span class="num">${i+1}</span><span class="text">${esc(t)}</span><button class="del" onclick="removeDraftItem(${i})">✕</button></div>`).join('');
 }
 
 async function publishTasks() {
@@ -509,12 +665,10 @@ async function publishTasks() {
   const dueDate = document.getElementById('publishDueDate').value;
   if (!dueDate) { toast('⚠️ 选择截止日期', 'error'); return; }
   data.groups.push({
-    id: data.nextGroupId++,
-    subject, dueDate,
-    tasks: draftItems.map((desc, i) => ({ id: i + 1, desc })),
+    id: data.nextGroupId++, subject, dueDate,
+    tasks: draftItems.map((desc,i) => ({ id:i+1, desc })),
     assignedStudents: assigned,
-    publishedAt: new Date().toISOString(),
-    completions: []
+    publishedAt: new Date().toISOString(), completions: []
   });
   draftItems = [];
   await syncSave();
@@ -531,9 +685,10 @@ function renderPublishedGroups() {
   }).join('');
 }
 
+// ===== Review =====
 function updateReviewSelect() {
   const sel = document.getElementById('reviewStudentSelect');
-  sel.innerHTML = '<option>— 请选择 —</option>' + data.students.map(s => `<option>${esc(s)}</option>`).join('');
+  sel.innerHTML = '<option>— 请选择 —</option>' + getStudents().map(s => `<option>${esc(s)}</option>`).join('');
 }
 
 function doReview() {
@@ -559,37 +714,25 @@ function doReview() {
   container.innerHTML = html;
 }
 
-// ===== Student functions =====
-function login(name) {
-  name = name.trim();
-  if (!name) { document.getElementById('loginErr').textContent = '请输入姓名'; return; }
-  if (!data.students.includes(name)) { document.getElementById('loginErr').textContent = '⚠️ 不在老师名单中，请联系老师'; return; }
-  document.getElementById('loginErr').textContent = '';
-  studentName = name;
-  localStorage.setItem('task_student_name', name);
-  document.getElementById('loginOverlay').classList.remove('show');
-  renderStudent();
+// ===== Student =====
+function viewImage(b64) {
+  document.getElementById('imgView').src = b64;
+  document.getElementById('imgOverlay').classList.add('show');
 }
+document.getElementById('imgOverlay').addEventListener('click', function(e) {
+  if (e.target === this || e.target === document.getElementById('imgClose')) this.classList.remove('show');
+});
 
-function logout() {
-  studentName = '';
-  localStorage.removeItem('task_student_name');
-  document.getElementById('loginOverlay').classList.add('show');
-  document.getElementById('loginInput').value = '';
-  document.getElementById('loginErr').textContent = '';
-  renderStudent();
-}
-
-function isDone(gId, desc) { const g = data.groups.find(x => x.id === gId); if (!g) return false; return (g.completions || []).some(c => c.student === studentName && c.taskDesc === desc && c.completed); }
-function hasImg(gId, desc) { const g = data.groups.find(x => x.id === gId); if (!g) return false; const c = (g.completions || []).find(x => x.student === studentName && x.taskDesc === desc); return c && !!c.image; }
-function getImg(gId, desc) { const g = data.groups.find(x => x.id === gId); if (!g) return null; const c = (g.completions || []).find(x => x.student === studentName && x.taskDesc === desc); return c ? c.image : null; }
+function isDone(gId, desc) { const g = data.groups.find(x => x.id === gId); if (!g) return false; return (g.completions || []).some(c => c.student === currentUser.name && c.taskDesc === desc && c.completed); }
+function hasImg(gId, desc) { const g = data.groups.find(x => x.id === gId); if (!g) return false; const c = (g.completions || []).find(x => x.student === currentUser.name && x.taskDesc === desc); return c && !!c.image; }
+function getImg(gId, desc) { const g = data.groups.find(x => x.id === gId); if (!g) return null; const c = (g.completions || []).find(x => x.student === currentUser.name && x.taskDesc === desc); return c ? c.image : null; }
 
 async function toggleComplete(gId, desc) {
   const g = data.groups.find(x => x.id === gId);
   if (!g) return;
   if (!g.completions) g.completions = [];
-  const idx = g.completions.findIndex(c => c.student === studentName && c.taskDesc === desc);
-  if (idx > -1) { g.completions.splice(idx, 1); } else { g.completions.push({ student: studentName, taskDesc: desc, completed: true, completedAt: new Date().toISOString(), image: null }); }
+  const idx = g.completions.findIndex(c => c.student === currentUser.name && c.taskDesc === desc);
+  if (idx > -1) { g.completions.splice(idx, 1); } else { g.completions.push({ student: currentUser.name, taskDesc: desc, completed: true, completedAt: new Date().toISOString(), image: null }); }
   await syncSave();
   renderStudent();
   if (isDone(gId, desc)) toast('✅ 已完成！', 'success');
@@ -601,27 +744,23 @@ function uploadImage(gId, desc) {
   inp.onchange = function(e) {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast('⚠️ 图片过大，压缩后再传（最大5MB）', 'error'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast('⚠️ 图片过大（最大5MB）', 'error'); return; }
     const reader = new FileReader();
     reader.onload = function(ev) {
       const img = new Image();
       img.onload = async function() {
         let w = img.width, h = img.height;
-        const maxW = 800;
-        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        if (w > 800) { h = Math.round(h * 800 / w); w = 800; }
         const c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        const ctx = c.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
+        c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
         const compressed = c.toDataURL('image/jpeg', 0.7);
         const g = data.groups.find(x => x.id === gId);
         if (!g) return;
         if (!g.completions) g.completions = [];
-        const existing = g.completions.find(x => x.student === studentName && x.taskDesc === desc);
-        if (existing) { existing.image = compressed; existing.completed = true; existing.completedAt = new Date().toISOString(); } else { g.completions.push({ student: studentName, taskDesc: desc, completed: true, completedAt: new Date().toISOString(), image: compressed }); }
-        await syncSave();
-        renderStudent();
-        toast('📸 图片已上传，任务已完成！', 'success');
+        const existing = g.completions.find(x => x.student === currentUser.name && x.taskDesc === desc);
+        if (existing) { existing.image = compressed; existing.completed = true; existing.completedAt = new Date().toISOString(); }
+        else { g.completions.push({ student: currentUser.name, taskDesc: desc, completed: true, completedAt: new Date().toISOString(), image: compressed }); }
+        await syncSave(); renderStudent(); toast('📸 图片已上传', 'success');
       };
       img.src = ev.target.result;
     };
@@ -630,34 +769,20 @@ function uploadImage(gId, desc) {
   inp.click();
 }
 
-function viewImage(b64) {
-  document.getElementById('imgView').src = b64;
-  document.getElementById('imgOverlay').classList.add('show');
-}
-document.getElementById('imgOverlay').addEventListener('click', function(e) {
-  if (e.target === this || e.target === document.getElementById('imgClose')) this.classList.remove('show');
-});
-
 function renderStudent() {
-  if (!studentName) {
-    document.getElementById('studentTopBar').style.display = 'none';
+  if (!currentUser || currentUser.role !== 'student') {
     document.getElementById('sProgress').style.display = 'none';
-    document.getElementById('sContent').innerHTML = '<div class="empty"><span class="icon">👋</span><p>请先登录</p></div>';
+    document.getElementById('sContent').innerHTML = '<div class="empty"><span class="icon">👋</span><p>学生登录后可查看任务</p></div>';
     return;
   }
-  document.getElementById('studentTopBar').style.display = 'flex';
-  document.getElementById('sName').textContent = studentName;
-
-  const groups = data.groups.filter(g => g.publishedAt && g.assignedStudents && g.assignedStudents.includes(studentName));
+  const groups = data.groups.filter(g => g.publishedAt && g.assignedStudents && g.assignedStudents.includes(currentUser.name));
   let total = 0, done = 0;
   groups.forEach(g => g.tasks.forEach(t => { total++; if (isDone(g.id, t.desc)) done++; }));
-
   if (!total) {
     document.getElementById('sProgress').style.display = 'none';
     document.getElementById('sContent').innerHTML = '<div class="empty"><span class="icon">🎯</span><p>暂无分配给您的任务</p></div>';
     return;
   }
-
   document.getElementById('sProgress').style.display = 'block';
   document.getElementById('sFrac').textContent = done + '/' + total;
   const fill = document.getElementById('sFill');
@@ -666,48 +791,28 @@ function renderStudent() {
 
   const gmap = {};
   groups.forEach(g => { if (!gmap[g.subject]) gmap[g.subject] = []; gmap[g.subject].push(g); });
-  const order = ['数学', '语文', '英语', '物理', '化学', '生物', '历史', '地理', '政治', '科学'];
+  const order = ['数学','语文','英语','物理','化学','生物','历史','地理','政治','科学'];
   const sorted = {};
   order.forEach(o => { if (gmap[o]) { sorted[o] = gmap[o]; delete gmap[o]; } });
   Object.keys(gmap).sort().forEach(k => { sorted[k] = gmap[k]; });
 
   let html = '';
   Object.keys(sorted).forEach(subj => {
-    const list = sorted[subj];
-    let gd = 0, gt = 0;
-    let th = '';
-    list.forEach(g => {
-      g.tasks.forEach(t => {
-        gt++;
-        const flag = isDone(g.id, t.desc);
-        if (flag) gd++;
-        const hi = hasImg(g.id, t.desc);
-        const idata = getImg(g.id, t.desc);
-        th += `<div class="task-card${flag?' done':''}">
-          <div class="chk" onclick="toggleComplete(${g.id},'${esc(t.desc).replace(/'/g,"\\'")}')"><div class="box"></div></div>
-          <div class="task-body">
-            <div class="task-text">${esc(t.desc)}</div>
-            <div class="task-actions">
-              <button class="img-btn${hi?' has-img':''}" onclick="uploadImage(${g.id},'${esc(t.desc).replace(/'/g,"\\'")}')">📷 ${hi?'已上传':'上传图片'}</button>
-              ${hi?`<button class="img-btn has-img" onclick='viewImage("${idata.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}")'>🖼️ 查看</button>`:''}
-            </div>
-          </div>
-        </div>`;
-      });
-    });
-    html += `<div class="subject-group"><div class="subject-header"><span class="icon">${SICONS[subj]||'📁'}</span><span class="name">${esc(subj)}</span><span class="deadline">${list[0].dueDate?fmtDue(list[0].dueDate):''}</span><span class="sc">${gd}/${gt}</span></div><div class="task-list">${th}</div></div>`;
+    let gd = 0, gt = 0, th = '';
+    sorted[subj].forEach(g => g.tasks.forEach(t => {
+      gt++; const flag = isDone(g.id, t.desc); if (flag) gd++;
+      const hi = hasImg(g.id, t.desc), idata = getImg(g.id, t.desc);
+      th += `<div class="task-card${flag?' done':''}"><div class="chk" onclick="toggleComplete(${g.id},'${esc(t.desc).replace(/'/g,"\\'")}')"><div class="box"></div></div><div class="task-body"><div class="task-text">${esc(t.desc)}</div><div class="task-actions"><button class="img-btn${hi?' has-img':''}" onclick="uploadImage(${g.id},'${esc(t.desc).replace(/'/g,"\\'")}')">📷 ${hi?'已上传':'上传图片'}</button>${hi?`<button class="img-btn has-img" onclick='viewImage("${idata.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}")'>🖼️ 查看</button>`:''}</div></div></div>`;
+    }));
+    html += `<div class="subject-group"><div class="subject-header"><span class="icon">${SICONS[subj]||'📁'}</span><span class="name">${esc(subj)}</span><span class="deadline">${sorted[subj][0].dueDate?fmtDue(sorted[subj][0].dueDate):''}</span><span class="sc">${gd}/${gt}</span></div><div class="task-list">${th}</div></div>`;
   });
-
   document.getElementById('sContent').innerHTML = html;
-  if (total > 0 && done === total) {
-    document.getElementById('sContent').classList.add('pop');
-    setTimeout(() => document.getElementById('sContent').classList.remove('pop'), 400);
-  }
 }
 
-// ===== Full render =====
+// ===== Full Render =====
 function fullRender() {
-  renderStudents();
+  if (!currentUser) return;
+  renderUserList();
   renderStudentChecks();
   renderDraft();
   renderPublishedGroups();
@@ -716,18 +821,13 @@ function fullRender() {
 }
 
 // ===== Events =====
-// Role switch
-document.querySelectorAll('.role-row .role-btn').forEach(b => {
-  b.addEventListener('click', function() {
-    document.querySelectorAll('.role-row .role-btn').forEach(x => x.classList.remove('active'));
-    this.classList.add('active');
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(this.dataset.role + 'Panel').classList.add('active');
-    if (this.dataset.role === 'student') renderStudent();
-  });
-});
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPassword').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginName').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('loginPassword').focus(); });
 
-// Teacher tabs
+document.getElementById('registerBtn').addEventListener('click', doRegister);
+document.getElementById('regPassword').addEventListener('keydown', function(e) { if (e.key === 'Enter') doRegister(); });
+
 document.querySelectorAll('#teacherPanel .tab').forEach(t => {
   t.addEventListener('click', function() {
     document.querySelectorAll('#teacherPanel .tab').forEach(x => x.classList.remove('active'));
@@ -737,46 +837,44 @@ document.querySelectorAll('#teacherPanel .tab').forEach(t => {
   });
 });
 
-// Student mgmt
-document.getElementById('addStudentBtn').addEventListener('click', () => addStudent(document.getElementById('studentInput').value));
-document.getElementById('studentInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') addStudent(this.value); });
+document.getElementById('addUserBtn').addEventListener('click', () => addUser(document.getElementById('userNameInput').value, document.getElementById('userRoleSelect').value));
+document.getElementById('userNameInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') addUser(this.value, document.getElementById('userRoleSelect').value);
+});
+
 document.getElementById('addItemBtn').addEventListener('click', addDraftItem);
 document.getElementById('taskItemInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') addDraftItem(); });
 document.getElementById('clearDraftBtn').addEventListener('click', () => { draftItems = []; renderDraft(); });
 document.getElementById('publishBtn').addEventListener('click', publishTasks);
 document.getElementById('reviewBtn').addEventListener('click', doReview);
-
-// Student
-document.getElementById('loginBtn').addEventListener('click', () => login(document.getElementById('loginInput').value));
-document.getElementById('loginInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') login(this.value); });
-document.getElementById('sLogout').addEventListener('click', logout);
+document.getElementById('logoutBtn').addEventListener('click', logout);
 
 // ===== Init =====
 async function initApp() {
-  // Set default due date
   const d = new Date(); d.setDate(d.getDate() + 1);
   document.getElementById('publishDueDate').value = d.toISOString().split('T')[0];
 
-  // Load from server
-  const loaded = await loadFromServer();
-  if (loaded) {
-    // Check saved student name
-    const saved = localStorage.getItem('task_student_name');
-    if (saved && data.students.includes(saved)) {
-      studentName = saved;
-      document.getElementById('loginOverlay').classList.remove('show');
-      renderStudent();
+  await loadFromServer();
+
+  const savedName = localStorage.getItem('task_user_name');
+  const savedRole = localStorage.getItem('task_user_role');
+  if (savedName && savedRole) {
+    const user = data.users.find(u => u.name === savedName);
+    if (user && user.role === savedRole) {
+      currentUser = { name: user.name, role: user.role };
+      document.getElementById('authOverlay').classList.remove('show');
+      enterApp();
     }
+  }
+
+  if (!currentUser) {
+    document.getElementById('authOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('loginName').focus(), 300);
   }
 
   document.getElementById('syncInfo').textContent = '就绪';
   fullRender();
   startPoll();
-
-  // If not logged in and has login overlay visible
-  if (document.getElementById('loginOverlay').classList.contains('show')) {
-    setTimeout(() => document.getElementById('loginInput').focus(), 300);
-  }
 }
 
 initApp();
