@@ -4,6 +4,9 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 // PostgreSQL connection
 // Render 免费 PostgreSQL 会自动设置 DATABASE_URL 环境变量
