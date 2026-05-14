@@ -1,114 +1,98 @@
 const express = require('express');
 const { Pool } = require('pg');
+const app = express();
 const path = require('path');
 
-const app = express();
+// 必须用这个端口，Vercel 才能运行
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
 
-// PostgreSQL connection
-// Render 免费 PostgreSQL 会自动设置 DATABASE_URL 环境变量
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/taskapp',
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
-});
-
-// Allow large payloads (for base64 images)
+// 解析 JSON
 app.use(express.json({ limit: '50mb' }));
-
-// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ===== Database setup =====
+// 数据库连接（自动适配 Vercel + Neon）
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
+// 初始化数据库表
 async function initDB() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS task_data (
-      id INTEGER PRIMARY KEY DEFAULT 1,
-      data JSONB NOT NULL,
-      updated_at TIMESTAMP DEFAULT NOW()
-    )
-  `);
-  // Ensure at least one row exists
-  const result = await pool.query('SELECT id FROM task_data WHERE id = 1');
-  if (result.rows.length === 0) {
-    await pool.query(
-      'INSERT INTO task_data (id, data) VALUES (1, $1)',
-      [JSON.stringify({ students: [], groups: [], nextGroupId: 1 })]
-    );
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS task_data (
+        id SERIAL PRIMARY KEY,
+        data JSONB NOT NULL
+      )
+    `);
+    console.log('✅ 数据库表初始化成功');
+  } catch (err) {
+    console.error('❌ 数据库初始化失败', err);
   }
-  console.log('✅ Database ready');
 }
+initDB();
 
-// ===== Helpers =====
+// 读取数据
 async function loadData() {
-  try {
-    const result = await pool.query('SELECT data FROM task_data WHERE id = 1');
-    if (result.rows.length > 0) {
-      return result.rows[0].data;
-    }
-  } catch (e) {
-    console.error('Load error:', e.message);
+  const result = await pool.query('SELECT data FROM task_data ORDER BY id DESC LIMIT 1');
+  if (result.rows.length > 0) {
+    return result.rows[0].data;
   }
-  return { students: [], groups: [], nextGroupId: 1 };
+  return {
+    students: [],
+    groups: [],
+    tasks: [],
+    submissions: []
+  };
 }
 
+// 保存数据
 async function saveData(data) {
-  try {
-    await pool.query(
-      'UPDATE task_data SET data = $1, updated_at = NOW() WHERE id = 1',
-      [JSON.stringify(data)]
-    );
-    return true;
-  } catch (e) {
-    console.error('Save error:', e.message);
-    return false;
-  }
+  await pool.query('INSERT INTO task_data (data) VALUES ($1)', [data]);
 }
 
-// ===== API Routes =====
-
-// GET /api/data — 获取全部数据
-app.get('/api/data', async (req, res) => {
+// 首页（动态内容）
+app.get('/', async (req, res) => {
   const data = await loadData();
-  res.json({ ok: true, data });
+  res.send(`
+    <h1>🎓 学生任务管理系统</h1>
+    <p>服务运行正常 🚀</p>
+    <p>学生数量：${data.students.length}</p>
+    <p>分组数量：${data.groups.length}</p>
+    <p>当前时间：${new Date().toLocaleString()}</p>
+  `);
 });
 
-// POST /api/data — 保存全部数据
-app.post('/api/data', async (req, res) => {
-  if (!req.body || typeof req.body !== 'object') {
-    return res.status(400).json({ ok: false, error: 'Invalid data' });
-  }
-  const success = await saveData(req.body);
-  if (success) {
-    res.json({ ok: true });
-  } else {
-    res.status(500).json({ ok: false, error: 'Failed to save data' });
-  }
-});
-
-// GET /api/status — 健康检查
-app.get('/api/status', (req, res) => {
-  res.json({ ok: true, time: new Date().toISOString() });
-});
-
-// ===== Start =====
-async function start() {
+// API：获取所有数据
+app.get('/api/data', async (req, res) => {
   try {
-    await initDB();
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log('================================================');
-      console.log('  📚 每日任务管理系统 - 服务已启动');
-      console.log('================================================');
-      console.log(`  地址: http://0.0.0.0:${PORT}`);
-      console.log(`  API:  /api/data`);
-      console.log(`  数据库: PostgreSQL`);
-      console.log('================================================');
-    });
-  } catch (e) {
-    console.error('Failed to start:', e.message);
-    process.exit(1);
+    const data = await loadData();
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
-}
-start();
+});
+
+// API：保存数据
+app.post('/api/data', async (req, res) => {
+  try {
+    await saveData(req.body);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 404 处理
+app.all('*', (req, res) => {
+  res.status(404).send(`<h1>404 - 页面不存在</h1><a href="/">返回首页</a>`);
+});
+
+// 启动服务
+app.listen(PORT, () => {
+  console.log(`✅ 服务已启动：http://localhost:${PORT}`);
+});
+
+module.exports = app;
