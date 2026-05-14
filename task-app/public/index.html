@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>每日任务管理系统</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#1a120b;--bg2:#261f19;--bg3:#332b23;--bg4:#3d342b;
+  --border:#4d4338;--text:#f5ede3;--text2:#c4b8aa;--text3:#8f8273;
+  --amber:#d4923a;--amber-glow:#e8a84c;--amber-dim:#a67a3a;
+  --green:#5a9e6f;--green-bg:rgba(90,158,111,0.12);
+  --red:#b85c4a;--red-bg:rgba(184,92,74,0.12);
+  --radius:12px;--radius-sm:8px;--radius-lg:18px;
+  --shadow:0 4px 24px rgba(0,0,0,0.3);
+  --t:.35s cubic-bezier(.4,0,.2,1);
+  --font:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif
+}
+html{font-size:15px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20%30%,rgba(212,146,58,0.04)0%,transparent 60%),radial-gradient(ellipse at 80%70%,rgba(204,127,58,0.03)0%,transparent 60%);pointer-events:none;z-index:0}
+.container{max-width:880px;margin:0 auto;padding:24px 16px 60px;position:relative;z-index:1}
+.header{text-align:center;padding:28px 0 16px;position:relative}
+.header::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:50px;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent);border-radius:1px}
+.header h1{font-size:1.4rem;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,var(--amber-glow),var(--amber-dim));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header .sub{color:var(--text3);font-size:.78rem;margin-top:4px}
+
+/* Status bar */
+.status-bar{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0 16px;font-size:.76rem;color:var(--text3)}
+.status-bar .dot{width:7px;height:7px;border-radius:50%;background:var(--text3)}
+.status-bar .dot.online{background:var(--green);box-shadow:0 0 6px rgba(90,158,111,0.5)}
+.status-bar .dot.offline{background:var(--red);box-shadow:0 0 6px rgba(184,92,74,0.5)}
+
+/* Role switch */
+.role-row{display:flex;gap:6px;background:var(--bg2);border-radius:100px;padding:3px;margin:0 auto 16px;width:fit-content;border:1px solid var(--border)}
+.role-btn{padding:8px 24px;border:none;background:transparent;color:var(--text3);font-family:var(--font);font-size:.85rem;font-weight:500;cursor:pointer;border-radius:100px;transition:var(--t)}
+.role-btn.active{color:var(--bg);background:var(--amber-glow);box-shadow:0 2px 10px rgba(212,146,58,0.25)}
+.role-btn:not(.active):hover{color:var(--text2)}
+
+/* Tabs (teacher) */
+.tabs{display:flex;gap:2px;background:var(--bg2);border-radius:var(--radius);padding:3px;margin-bottom:18px;border:1px solid var(--border)}
+.tab{padding:8px 16px;border:none;background:transparent;color:var(--text3);font-family:var(--font);font-size:.82rem;font-weight:500;cursor:pointer;border-radius:var(--radius-sm);transition:var(--t);flex:1;text-align:center}
+.tab.active{background:var(--amber);color:var(--bg);box-shadow:0 2px 10px rgba(212,146,58,0.25)}
+
+.panel{display:none;animation:fadeUp .35s ease}
+.panel.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px 20px;box-shadow:var(--shadow);margin-bottom:16px}
+.card-title{font-size:.9rem;font-weight:600;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-group label{display:block;font-size:.74rem;font-weight:500;color:var(--text3);margin-bottom:3px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:.85rem;transition:var(--t);outline:none}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--amber-dim);box-shadow:0 0 0 3px rgba(212,146,58,0.08)}
+.form-group select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238f8273'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+.form-group.full{grid-column:1/-1}
+
+.btn{display:inline-flex;align-items:center;gap:4px;padding:8px 18px;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:.83rem;font-weight:500;cursor:pointer;transition:var(--t)}
+.btn-primary{background:var(--amber);color:var(--bg)}
+.btn-primary:hover{background:var(--amber-glow);transform:translateY(-1px);box-shadow:0 4px 15px rgba(212,146,58,0.2)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#6abf7f;transform:translateY(-1px);box-shadow:0 4px 15px rgba(90,158,111,0.2)}
+.btn-secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--bg4);color:var(--text)}
+.btn-sm{padding:4px 10px;font-size:.76rem}
+.btn-xs{padding:2px 8px;font-size:.7rem;border-radius:4px}
+
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);padding:4px 10px;border-radius:100px;font-size:.8rem;color:var(--text2)}
+.tag .remove{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:.85rem;padding:0 2px;line-height:1;transition:var(--t);font-family:var(--font)}
+.tag .remove:hover{color:var(--red)}
+
+.item-list{display:flex;flex-direction:column;gap:5px;margin:6px 0 10px}
+.item-row{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px}
+.item-row .num{flex-shrink:0;width:20px;height:20px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--text3);font-weight:600}
+.item-row .text{flex:1;font-size:.85rem;color:var(--text)}
+.item-row .del{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px;transition:var(--t);font-family:var(--font)}
+.item-row .del:hover{color:var(--red);background:var(--red-bg)}
+.add-row{display:flex;gap:8px}
+.add-row input{flex:1}
+.select-hint{color:var(--text3);font-size:.75rem;margin:2px 0 6px}
+
+/* Student check */
+.student-check-grid{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.student-check-label{display:flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--border);padding:5px 12px;border-radius:100px;font-size:.8rem;color:var(--text2);cursor:pointer;transition:var(--t);user-select:none}
+.student-check-label:hover{border-color:var(--amber-dim)}
+.student-check-label input{display:none}
+.student-check-label .ck{width:15px;height:15px;border:2px solid var(--text3);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--t)}
+.student-check-label .ck::after{content:'✓';font-size:9px;color:#fff;opacity:0;transform:scale(0);transition:var(--t);font-weight:700}
+.student-check-label input:checked~.ck{background:var(--green);border-color:var(--green)}
+.student-check-label input:checked~.ck::after{opacity:1;transform:scale(1)}
+.student-check-label input:checked~span{color:var(--text)}
+
+/* Review */
+.review-group{margin-bottom:14px}
+.review-group-header{display:flex;align-items:center;gap:8px;padding:7px 10px;margin-bottom:5px;border-left:3px solid var(--amber);background:rgba(212,146,58,0.05)}
+.review-group-header .icon{font-size:.95rem}
+.review-group-header .name{font-size:.87rem;font-weight:600;color:var(--text)}
+.review-group-header .due{font-size:.7rem;color:var(--text3);margin-left:auto}
+.review-task{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border);font-size:.83rem}
+.review-task:last-child{border-bottom:none}
+.review-task .status{flex-shrink:0}
+.review-task .rt-text{flex:1;color:var(--text)}
+.review-task .rt-img{flex-shrink:0;font-size:.68rem;color:var(--amber);cursor:pointer;padding:2px 8px;border-radius:4px;background:rgba(212,146,58,0.08);transition:var(--t);border:none;font-family:var(--font)}
+.review-task .rt-img:hover{background:rgba(212,146,58,0.15)}
+
+/* Student task cards */
+.subject-group{margin-bottom:20px}
+.subject-header{display:flex;align-items:center;gap:8px;padding:7px 12px;margin-bottom:6px;background:linear-gradient(135deg,rgba(212,146,58,0.06),transparent);border-radius:var(--radius-sm);border-left:3px solid var(--amber)}
+.subject-header .icon{font-size:.95rem}
+.subject-header .name{font-size:.88rem;font-weight:600;color:var(--text)}
+.subject-header .deadline{font-size:.7rem;color:var(--text3);margin-left:6px}
+.subject-header .sc{margin-left:auto;font-size:.7rem;color:var(--text3);background:var(--bg2);padding:1px 8px;border-radius:100px}
+.task-list{display:flex;flex-direction:column;gap:5px}
+.task-card{display:flex;align-items:flex-start;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;transition:var(--t)}
+.task-card.done{opacity:.65;border-color:var(--green);background:linear-gradient(135deg,rgba(90,158,111,0.04),var(--bg3))}
+.task-card.done .task-text{text-decoration:line-through;color:var(--text3)}
+.chk{flex-shrink:0;width:18px;height:18px;margin-top:2px;position:relative;cursor:pointer}
+.chk .box{width:18px;height:18px;border:2px solid var(--text3);border-radius:4px;display:flex;align-items:center;justify-content:center;transition:var(--t);position:absolute;inset:0}
+.task-card.done .chk .box{background:var(--green);border-color:var(--green)}
+.chk .box::after{content:'✓';font-size:10px;color:#fff;opacity:0;transform:scale(0);transition:var(--t);font-weight:700}
+.task-card.done .chk .box::after{opacity:1;transform:scale(1)}
+.task-body{flex:1;min-width:0}
+.task-body .task-text{font-size:.84rem;color:var(--text);line-height:1.4}
+.task-actions{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap}
+.task-actions .img-btn{background:rgba(90,158,111,0.08);border:1px solid var(--border);color:var(--text3);padding:2px 9px;border-radius:100px;font-size:.7rem;cursor:pointer;font-family:var(--font);transition:var(--t)}
+.task-actions .img-btn:hover{color:var(--green);border-color:var(--green)}
+.task-actions .img-btn.has-img{color:var(--green);border-color:var(--green);background:var(--green-bg)}
+
+/* Progress */
+.progress-card{background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:18px;box-shadow:var(--shadow)}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.progress-top .label{font-size:.83rem;color:var(--text2)}
+.progress-top .frac{font-size:.8rem;color:var(--amber);font-weight:600}
+.progress-bar{height:5px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--amber-dim),var(--amber-glow));border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1);width:0}
+.progress-fill.all-done{background:linear-gradient(90deg,var(--green),#6abf7f)}
+
+/* Login overlay */
+.login-overlay{position:fixed;inset:0;z-index:200;background:rgba(26,18,11,0.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s ease}
+.login-overlay.show{opacity:1;pointer-events:auto}
+.login-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px 36px 28px;max-width:360px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.4);transform:translateY(10px);transition:transform .4s cubic-bezier(.4,0,.2,1)}
+.login-overlay.show .login-card{transform:translateY(0)}
+.login-card .icon{font-size:2.2rem;margin-bottom:6px;display:block}
+.login-card h2{font-size:1.05rem;font-weight:600;margin-bottom:3px;color:var(--text)}
+.login-card .info{font-size:.76rem;color:var(--text3);margin-bottom:14px}
+.login-card input{width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:.95rem;text-align:center;outline:none;transition:var(--t)}
+.login-card input:focus{border-color:var(--amber-dim);box-shadow:0 0 0 3px rgba(212,146,58,0.1)}
+.login-card .btn{display:block;width:100%;margin-top:12px;padding:10px;border:none;border-radius:var(--radius-sm);background:var(--amber);color:var(--bg);font-family:var(--font);font-size:.9rem;font-weight:600;cursor:pointer;transition:var(--t)}
+.login-card .btn:hover{background:var(--amber-glow);box-shadow:0 4px 15px rgba(212,146,58,0.3)}
+.login-card .err{font-size:.73rem;color:var(--red);margin-top:6px;min-height:1.2em}
+.login-card .hint{font-size:.7rem;color:var(--text3);margin-top:8px}
+
+/* Image overlay */
+.img-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:30px;cursor:pointer}
+.img-overlay.show{display:flex}
+.img-overlay img{max-width:90vw;max-height:85vh;border-radius:var(--radius);box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+.img-overlay .close-btn{position:fixed;top:16px;right:24px;font-size:1.6rem;color:var(--text2);cursor:pointer;background:transparent;border:none;font-family:var(--font);transition:var(--t)}
+.img-overlay .close-btn:hover{color:#fff}
+
+.empty{text-align:center;padding:36px 20px;color:var(--text3)}
+.empty .icon{font-size:2rem;margin-bottom:8px;display:block;opacity:.5}
+.empty p{font-size:.85rem}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%)translateY(80px);background:var(--bg3);color:var(--text);padding:10px 22px;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);font-size:.83rem;opacity:0;transition:all .4s cubic-bezier(.4,0,.2,1);z-index:100;pointer-events:none;backdrop-filter:blur(12px)}
+.toast.show{opacity:1;transform:translateX(-50%)translateY(0)}
+.toast.success{border-color:var(--green)}
+.toast.error{border-color:var(--red)}
+
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+.pop{animation:pop .35s ease}
+
+@media(max-width:600px){
+  .container{padding:16px 10px 40px}
+  .header h1{font-size:1.2rem}
+  .form-row{grid-template-columns:1fr}
+  .card{padding:14px 14px 16px}
+  .tabs .tab{font-size:.78rem;padding:6px 8px}
+  .login-card{padding:24px 20px}
+}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <h1>📚 每日任务管理系统</h1>
+    <p class="sub" id="serverInfo">连接中...</p>
+  </header>
+
+  <!-- Status -->
+  <div class="status-bar">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">连接服务器中...</span>
+    <span style="opacity:.5">|</span>
+    <span id="syncInfo">等待同步</span>
+  </div>
+
+  <!-- Role switch -->
+  <div class="role-row">
+    <button class="role-btn active" data-role="teacher">👨‍🏫 教师端</button>
+    <button class="role-btn" data-role="student">👩‍🎓 学生端</button>
+  </div>
+
+  <!-- ===== TEACHER ===== -->
+  <div class="panel active" id="teacherPanel">
+    <div class="tabs">
+      <button class="tab" data-tab="t-students">👥 学生管理</button>
+      <button class="tab active" data-tab="t-publish">📝 发布任务</button>
+      <button class="tab" data-tab="t-review">🔍 查看任务</button>
+    </div>
+
+    <!-- Students -->
+    <div class="panel" id="t-students">
+      <div class="card">
+        <div class="card-title">👥 添加学生</div>
+        <div class="add-row">
+          <input type="text" id="studentInput" placeholder="输入学生姓名..." maxlength="10">
+          <button class="btn btn-primary" id="addStudentBtn">添加</button>
+        </div>
+        <div id="studentList" class="tag-list"></div>
+      </div>
+    </div>
+
+    <!-- Publish -->
+    <div class="panel active" id="t-publish">
+      <div class="card">
+        <div class="card-title">📝 新建任务</div>
+        <div class="form-group" style="margin-bottom:6px">
+          <label>👥 分配给</label>
+          <div class="student-check-grid" id="studentCheckGrid"></div>
+          <div class="select-hint" id="studentSelectHint">请先在「学生管理」中添加学生</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>📖 科目</label>
+            <select id="publishSubject">
+              <option>数学</option><option>语文</option><option>英语</option>
+              <option>物理</option><option>化学</option><option>生物</option>
+              <option>历史</option><option>地理</option><option>政治</option><option>科学</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>📅 截止日期</label>
+            <input type="date" id="publishDueDate">
+          </div>
+        </div>
+        <div class="add-row" style="margin-bottom:2px">
+          <input type="text" id="taskItemInput" placeholder="添加任务项..." maxlength="100">
+          <button class="btn btn-secondary" id="addItemBtn">＋ 添加</button>
+        </div>
+        <div id="draftItems" class="item-list"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" id="clearDraftBtn">清空</button>
+          <button class="btn btn-green" id="publishBtn">📢 发布任务</button>
+        </div>
+      </div>
+      <div class="card" style="padding:14px 18px">
+        <div class="card-title" style="margin-bottom:6px">📌 已发布</div>
+        <div id="publishedGroups"></div>
+      </div>
+    </div>
+
+    <!-- Review -->
+    <div class="panel" id="t-review">
+      <div class="card">
+        <div class="card-title">🔍 查看学生完成情况</div>
+        <div class="form-row" style="margin-bottom:0">
+          <div class="form-group" style="margin-bottom:0">
+            <label>选择学生</label>
+            <select id="reviewStudentSelect"><option>— 请选择 —</option></select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;display:flex;align-items:flex-end">
+            <button class="btn btn-primary" id="reviewBtn" style="width:100%">查看</button>
+          </div>
+        </div>
+      </div>
+      <div id="reviewContent"><div class="empty"><span class="icon">👆</span><p>选择学生后查看</p></div></div>
+    </div>
+  </div>
+
+  <!-- ===== STUDENT ===== -->
+  <div class="panel" id="studentPanel">
+    <div id="studentTopBar" style="display:none;display:flex;align-items:center;justify-content:space-between;margin:0 0 12px;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius)">
+      <span style="font-size:.83rem;color:var(--text2)">👤 <strong id="sName" style="color:var(--amber)">—</strong></span>
+      <button class="btn btn-sm btn-secondary" id="sLogout">切换</button>
+    </div>
+
+    <div class="progress-card" id="sProgress" style="display:none">
+      <div class="progress-top">
+        <span class="label">📊 完成进度</span>
+        <span class="frac" id="sFrac">0/0</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="sFill"></div></div>
+    </div>
+
+    <div id="sContent"><div class="empty"><span class="icon">👋</span><p>请在下方登录</p></div></div>
+  </div>
+</div>
+
+<!-- Login overlay -->
+<div class="login-overlay show" id="loginOverlay">
+  <div class="login-card">
+    <span class="icon">👩‍🎓</span>
+    <h2>学生登录</h2>
+    <p class="info">请输入老师登记的姓名</p>
+    <input type="text" id="loginInput" placeholder="你的姓名..." maxlength="10" autocomplete="off">
+    <button class="btn" id="loginBtn">进入</button>
+    <p class="err" id="loginErr"></p>
+    <p class="hint">按 Enter 确认</p>
+  </div>
+</div>
+
+<!-- Image viewer -->
+<div class="img-overlay" id="imgOverlay">
+  <button class="close-btn" id="imgClose">✕</button>
+  <img id="imgView" src="" alt="图片">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== Server config =====
+const API_BASE = window.location.origin;
+const POLL_INTERVAL = 3000; // 3 seconds
+
+// ===== State =====
+let data = { students: [], groups: [], nextGroupId: 1 };
+let studentName = '';
+let draftItems = [];
+let online = false;
+let lastSaveVersion = 0;
+
+// ===== Storage (server) =====
+async function fetchData() {
+  try {
+    const r = await fetch(API_BASE + '/api/data');
+    const j = await r.json();
+    if (j.ok && j.data) {
+      normalize(j.data);
+      return j.data;
+    }
+  } catch (e) {}
+  return null;
+}
+
+async function saveDataToServer() {
+  try {
+    // Attach version for conflict detection
+    const payload = { ...data, _version: Date.now() };
+    const r = await fetch(API_BASE + '/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const j = await r.json();
+    if (j.ok) {
+      lastSaveVersion = payload._version;
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
+async function checkServer() {
+  try {
+    const r = await fetch(API_BASE + '/api/status');
+    return r.ok;
+  } catch { return false; }
+}
+
+function normalize(d) {
+  if (!d.students) d.students = [];
+  if (!d.groups) d.groups = [];
+  if (!d.nextGroupId) d.nextGroupId = 1;
+  d.groups.forEach(g => {
+    if (!g.assignedStudents) g.assignedStudents = [];
+    if (!g.completions) g.completions = [];
+    if (!g.tasks) g.tasks = [];
+  });
+}
+
+// ===== Init / Sync =====
+let pollTimer = null;
+
+async function loadFromServer() {
+  const d = await fetchData();
+  if (d) {
+    data = d;
+    setOnline(true);
+    return true;
+  }
+  setOnline(false);
+  return false;
+}
+
+async function syncSave() {
+  const ok = await saveDataToServer();
+  setOnline(ok);
+  return ok;
+}
+
+function setOnline(status) {
+  online = status;
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  dot.className = 'dot ' + (status ? 'online' : 'offline');
+  txt.textContent = status ? '已连接服务器' : '连接断开（数据未保存）';
+  document.getElementById('serverInfo').textContent = status ? '数据实时同步中' : '⚠️ 离线模式';
+}
+
+async function pollLoop() {
+  const d = await fetchData();
+  if (d) {
+    setOnline(true);
+    // If server has newer data, reload
+    const serverVersion = d._version || 0;
+    if (serverVersion > lastSaveVersion) {
+      data = d;
+      normalize(data);
+      fullRender();
+      document.getElementById('syncInfo').textContent = '已同步';
+    } else {
+      document.getElementById('syncInfo').textContent = '最新';
+    }
+  } else {
+    setOnline(false);
+  }
+}
+
+function startPoll() { pollTimer = setInterval(pollLoop, POLL_INTERVAL); }
+
+// ===== Toast =====
+let tt = null;
+function toast(m, t = 'info') {
+  const e = document.getElementById('toast');
+  e.textContent = m; e.className = 'toast ' + t + ' show';
+  clearTimeout(tt); tt = setTimeout(() => e.classList.remove('show'), 2600);
+}
+
+// ===== Utilities =====
+function getToday() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function fmtCN(s) { const p = s.split('-'); return p[0] + '年' + parseInt(p[1]) + '月' + parseInt(p[2]) + '日'; }
+const WDS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+function wd(s) { return WDS[new Date(s + 'T00:00:00').getDay()]; }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+const SICONS = { 数学: '📐', 语文: '📖', 英语: '🌍', 物理: '⚡', 化学: '🧪', 生物: '🧬', 历史: '📜', 地理: '🌏', 政治: '⚖️', 科学: '🔬' };
+
+function fmtDue(d) { if (!d) return ''; if (d.includes(':')) return '⏰ ' + d; const p = d.split('-'); return '📅 ' + p[0] + '年' + parseInt(p[1]) + '月' + parseInt(p[2]) + '日'; }
+
+// ===== Teacher functions =====
+function addStudent(name) {
+  name = name.trim();
+  if (!name) { toast('⚠️ 输入姓名', 'error'); return; }
+  if (data.students.includes(name)) { toast('⚠️ 已存在', 'error'); return; }
+  data.students.push(name);
+  syncSave().then(() => fullRender());
+  document.getElementById('studentInput').value = '';
+  toast('✅ 已添加：' + name, 'success');
+}
+
+function removeStudent(name) {
+  data.students = data.students.filter(s => s !== name);
+  data.groups.forEach(g => { g.assignedStudents = g.assignedStudents.filter(s => s !== name); if (g.completions) g.completions = g.completions.filter(c => c.student !== name); });
+  syncSave().then(() => fullRender());
+  toast('已移除：' + name, 'info');
+}
+
+function renderStudents() {
+  const c = document.getElementById('studentList');
+  if (!data.students.length) { c.innerHTML = '<span style="color:var(--text3);font-size:.8rem">暂无学生</span>'; return; }
+  c.innerHTML = data.students.map(s => `<span class="tag">${esc(s)}<button class="remove" onclick="removeStudent('${esc(s)}')">✕</button></span>`).join('');
+}
+
+function renderStudentChecks() {
+  const c = document.getElementById('studentCheckGrid');
+  const h = document.getElementById('studentSelectHint');
+  if (!data.students.length) { c.innerHTML = ''; h.style.display = 'block'; return; }
+  h.style.display = 'none';
+  c.innerHTML = data.students.map(s => `<label class="student-check-label"><input type="checkbox" value="${esc(s)}" checked><span class="ck"></span><span>${esc(s)}</span></label>`).join('');
+}
+
+function getSelectedStudents() { const r = []; document.querySelectorAll('#studentCheckGrid .student-check-label').forEach(l => { const cb = l.querySelector('input'); if (cb && cb.checked) r.push(cb.value); }); return r; }
+
+function addDraftItem() {
+  const inp = document.getElementById('taskItemInput');
+  const t = inp.value.trim();
+  if (!t) { toast('⚠️ 输入任务', 'error'); return; }
+  draftItems.push(t); inp.value = ''; renderDraft(); inp.focus();
+}
+function removeDraftItem(i) { draftItems.splice(i, 1); renderDraft(); }
+
+function renderDraft() {
+  const c = document.getElementById('draftItems');
+  if (!draftItems.length) { c.innerHTML = '<span style="color:var(--text3);font-size:.8rem;padding:4px 0">暂无任务项</span>'; return; }
+  c.innerHTML = draftItems.map((t, i) => `<div class="item-row"><span class="num">${i+1}</span><span class="text">${esc(t)}</span><button class="del" onclick="removeDraftItem(${i})">✕</button></div>`).join('');
+}
+
+async function publishTasks() {
+  const assigned = getSelectedStudents();
+  if (!assigned.length) { toast('⚠️ 至少选一个学生', 'error'); return; }
+  if (!draftItems.length) { toast('⚠️ 至少添加一项任务', 'error'); return; }
+  const subject = document.getElementById('publishSubject').value;
+  const dueDate = document.getElementById('publishDueDate').value;
+  if (!dueDate) { toast('⚠️ 选择截止日期', 'error'); return; }
+  data.groups.push({
+    id: data.nextGroupId++,
+    subject, dueDate,
+    tasks: draftItems.map((desc, i) => ({ id: i + 1, desc })),
+    assignedStudents: assigned,
+    publishedAt: new Date().toISOString(),
+    completions: []
+  });
+  draftItems = [];
+  await syncSave();
+  fullRender();
+  toast('✅ 已发布给 ' + assigned.length + ' 位学生', 'success');
+}
+
+function renderPublishedGroups() {
+  const c = document.getElementById('publishedGroups');
+  if (!data.groups.length) { c.innerHTML = '<span style="color:var(--text3);font-size:.8rem">暂无</span>'; return; }
+  c.innerHTML = [...data.groups].reverse().map(g => {
+    const dc = (g.completions || []).filter(x => x.completed).length;
+    return `<div class="item-row"><span style="font-size:.82rem;color:var(--text);flex:1">${SICONS[g.subject]||'📁'} ${esc(g.subject)} · ${g.tasks.length}项 · ${fmtDue(g.dueDate)}<br><span style="font-size:.68rem;color:var(--text3)">👥 ${g.assignedStudents.join('、')} · ${dc}个完成</span></span></div>`;
+  }).join('');
+}
+
+function updateReviewSelect() {
+  const sel = document.getElementById('reviewStudentSelect');
+  sel.innerHTML = '<option>— 请选择 —</option>' + data.students.map(s => `<option>${esc(s)}</option>`).join('');
+}
+
+function doReview() {
+  const student = document.getElementById('reviewStudentSelect').value;
+  if (!student || student === '— 请选择 —') { toast('⚠️ 选择学生', 'error'); return; }
+  const container = document.getElementById('reviewContent');
+  const published = data.groups.filter(g => g.publishedAt && g.assignedStudents.includes(student));
+  if (!published.length) { container.innerHTML = '<div class="empty"><span class="icon">📋</span><p>该学生暂无任务</p></div>'; return; }
+  let total = 0, done = 0;
+  let html = '<div style="margin-bottom:12px;font-size:.83rem;color:var(--text2)">👤 <strong style="color:var(--amber)">' + esc(student) + '</strong></div>';
+  published.forEach(g => {
+    const comps = g.completions || [];
+    let gt = 0, gd = 0;
+    const th = g.tasks.map(t => {
+      const c = comps.find(x => x.student === student && x.taskDesc === t.desc);
+      const isDone = c && c.completed, hasImg = c && c.image;
+      gt++; total++; if (isDone) { gd++; done++; }
+      return `<div class="review-task"><span class="status">${isDone?'✅':'⏳'}</span><span class="rt-text" style="${isDone?'text-decoration:line-through;color:var(--text3)':''}">${esc(t.desc)}</span>${hasImg?`<button class="rt-img" onclick='viewImage("${c.image.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}")'>🖼️ 图片</button>`:''}${isDone&&!hasImg?'<span style="font-size:.66rem;color:var(--text3)">无图</span>':''}</div>`;
+    }).join('');
+    html += `<div class="review-group"><div class="review-group-header"><span class="icon">${SICONS[g.subject]||'📁'}</span><span class="name">${esc(g.subject)}</span><span class="due">${fmtDue(g.dueDate)} · ${gd}/${gt}</span></div>${th}</div>`;
+  });
+  html = `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:14px;text-align:center;font-size:.85rem">共 <strong>${total}</strong> 项 · 已完成 <strong style="color:var(--green)">${done}</strong> 项 · ${total>0?Math.round(done/total*100):0}%</div>` + html;
+  container.innerHTML = html;
+}
+
+// ===== Student functions =====
+function login(name) {
+  name = name.trim();
+  if (!name) { document.getElementById('loginErr').textContent = '请输入姓名'; return; }
+  if (!data.students.includes(name)) { document.getElementById('loginErr').textContent = '⚠️ 不在老师名单中，请联系老师'; return; }
+  document.getElementById('loginErr').textContent = '';
+  studentName = name;
+  localStorage.setItem('task_student_name', name);
+  document.getElementById('loginOverlay').classList.remove('show');
+  renderStudent();
+}
+
+function logout() {
+  studentName = '';
+  localStorage.removeItem('task_student_name');
+  document.getElementById('loginOverlay').classList.add('show');
+  document.getElementById('loginInput').value = '';
+  document.getElementById('loginErr').textContent = '';
+  renderStudent();
+}
+
+function isDone(gId, desc) { const g = data.groups.find(x => x.id === gId); if (!g) return false; return (g.completions || []).some(c => c.student === studentName && c.taskDesc === desc && c.completed); }
+function hasImg(gId, desc) { const g = data.groups.find(x => x.id === gId); if (!g) return false; const c = (g.completions || []).find(x => x.student === studentName && x.taskDesc === desc); return c && !!c.image; }
+function getImg(gId, desc) { const g = data.groups.find(x => x.id === gId); if (!g) return null; const c = (g.completions || []).find(x => x.student === studentName && x.taskDesc === desc); return c ? c.image : null; }
+
+async function toggleComplete(gId, desc) {
+  const g = data.groups.find(x => x.id === gId);
+  if (!g) return;
+  if (!g.completions) g.completions = [];
+  const idx = g.completions.findIndex(c => c.student === studentName && c.taskDesc === desc);
+  if (idx > -1) { g.completions.splice(idx, 1); } else { g.completions.push({ student: studentName, taskDesc: desc, completed: true, completedAt: new Date().toISOString(), image: null }); }
+  await syncSave();
+  renderStudent();
+  if (isDone(gId, desc)) toast('✅ 已完成！', 'success');
+}
+
+function uploadImage(gId, desc) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast('⚠️ 图片过大，压缩后再传（最大5MB）', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = new Image();
+      img.onload = async function() {
+        let w = img.width, h = img.height;
+        const maxW = 800;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const compressed = c.toDataURL('image/jpeg', 0.7);
+        const g = data.groups.find(x => x.id === gId);
+        if (!g) return;
+        if (!g.completions) g.completions = [];
+        const existing = g.completions.find(x => x.student === studentName && x.taskDesc === desc);
+        if (existing) { existing.image = compressed; existing.completed = true; existing.completedAt = new Date().toISOString(); } else { g.completions.push({ student: studentName, taskDesc: desc, completed: true, completedAt: new Date().toISOString(), image: compressed }); }
+        await syncSave();
+        renderStudent();
+        toast('📸 图片已上传，任务已完成！', 'success');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+function viewImage(b64) {
+  document.getElementById('imgView').src = b64;
+  document.getElementById('imgOverlay').classList.add('show');
+}
+document.getElementById('imgOverlay').addEventListener('click', function(e) {
+  if (e.target === this || e.target === document.getElementById('imgClose')) this.classList.remove('show');
+});
+
+function renderStudent() {
+  if (!studentName) {
+    document.getElementById('studentTopBar').style.display = 'none';
+    document.getElementById('sProgress').style.display = 'none';
+    document.getElementById('sContent').innerHTML = '<div class="empty"><span class="icon">👋</span><p>请先登录</p></div>';
+    return;
+  }
+  document.getElementById('studentTopBar').style.display = 'flex';
+  document.getElementById('sName').textContent = studentName;
+
+  const groups = data.groups.filter(g => g.publishedAt && g.assignedStudents && g.assignedStudents.includes(studentName));
+  let total = 0, done = 0;
+  groups.forEach(g => g.tasks.forEach(t => { total++; if (isDone(g.id, t.desc)) done++; }));
+
+  if (!total) {
+    document.getElementById('sProgress').style.display = 'none';
+    document.getElementById('sContent').innerHTML = '<div class="empty"><span class="icon">🎯</span><p>暂无分配给您的任务</p></div>';
+    return;
+  }
+
+  document.getElementById('sProgress').style.display = 'block';
+  document.getElementById('sFrac').textContent = done + '/' + total;
+  const fill = document.getElementById('sFill');
+  fill.style.width = (done / total * 100) + '%';
+  fill.classList.toggle('all-done', done === total);
+
+  const gmap = {};
+  groups.forEach(g => { if (!gmap[g.subject]) gmap[g.subject] = []; gmap[g.subject].push(g); });
+  const order = ['数学', '语文', '英语', '物理', '化学', '生物', '历史', '地理', '政治', '科学'];
+  const sorted = {};
+  order.forEach(o => { if (gmap[o]) { sorted[o] = gmap[o]; delete gmap[o]; } });
+  Object.keys(gmap).sort().forEach(k => { sorted[k] = gmap[k]; });
+
+  let html = '';
+  Object.keys(sorted).forEach(subj => {
+    const list = sorted[subj];
+    let gd = 0, gt = 0;
+    let th = '';
+    list.forEach(g => {
+      g.tasks.forEach(t => {
+        gt++;
+        const flag = isDone(g.id, t.desc);
+        if (flag) gd++;
+        const hi = hasImg(g.id, t.desc);
+        const idata = getImg(g.id, t.desc);
+        th += `<div class="task-card${flag?' done':''}">
+          <div class="chk" onclick="toggleComplete(${g.id},'${esc(t.desc).replace(/'/g,"\\'")}')"><div class="box"></div></div>
+          <div class="task-body">
+            <div class="task-text">${esc(t.desc)}</div>
+            <div class="task-actions">
+              <button class="img-btn${hi?' has-img':''}" onclick="uploadImage(${g.id},'${esc(t.desc).replace(/'/g,"\\'")}')">📷 ${hi?'已上传':'上传图片'}</button>
+              ${hi?`<button class="img-btn has-img" onclick='viewImage("${idata.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}")'>🖼️ 查看</button>`:''}
+            </div>
+          </div>
+        </div>`;
+      });
+    });
+    html += `<div class="subject-group"><div class="subject-header"><span class="icon">${SICONS[subj]||'📁'}</span><span class="name">${esc(subj)}</span><span class="deadline">${list[0].dueDate?fmtDue(list[0].dueDate):''}</span><span class="sc">${gd}/${gt}</span></div><div class="task-list">${th}</div></div>`;
+  });
+
+  document.getElementById('sContent').innerHTML = html;
+  if (total > 0 && done === total) {
+    document.getElementById('sContent').classList.add('pop');
+    setTimeout(() => document.getElementById('sContent').classList.remove('pop'), 400);
+  }
+}
+
+// ===== Full render =====
+function fullRender() {
+  renderStudents();
+  renderStudentChecks();
+  renderDraft();
+  renderPublishedGroups();
+  updateReviewSelect();
+  renderStudent();
+}
+
+// ===== Events =====
+// Role switch
+document.querySelectorAll('.role-row .role-btn').forEach(b => {
+  b.addEventListener('click', function() {
+    document.querySelectorAll('.role-row .role-btn').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(this.dataset.role + 'Panel').classList.add('active');
+    if (this.dataset.role === 'student') renderStudent();
+  });
+});
+
+// Teacher tabs
+document.querySelectorAll('#teacherPanel .tab').forEach(t => {
+  t.addEventListener('click', function() {
+    document.querySelectorAll('#teacherPanel .tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('#teacherPanel .panel').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById(this.dataset.tab).classList.add('active');
+  });
+});
+
+// Student mgmt
+document.getElementById('addStudentBtn').addEventListener('click', () => addStudent(document.getElementById('studentInput').value));
+document.getElementById('studentInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') addStudent(this.value); });
+document.getElementById('addItemBtn').addEventListener('click', addDraftItem);
+document.getElementById('taskItemInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') addDraftItem(); });
+document.getElementById('clearDraftBtn').addEventListener('click', () => { draftItems = []; renderDraft(); });
+document.getElementById('publishBtn').addEventListener('click', publishTasks);
+document.getElementById('reviewBtn').addEventListener('click', doReview);
+
+// Student
+document.getElementById('loginBtn').addEventListener('click', () => login(document.getElementById('loginInput').value));
+document.getElementById('loginInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') login(this.value); });
+document.getElementById('sLogout').addEventListener('click', logout);
+
+// ===== Init =====
+async function initApp() {
+  // Set default due date
+  const d = new Date(); d.setDate(d.getDate() + 1);
+  document.getElementById('publishDueDate').value = d.toISOString().split('T')[0];
+
+  // Load from server
+  const loaded = await loadFromServer();
+  if (loaded) {
+    // Check saved student name
+    const saved = localStorage.getItem('task_student_name');
+    if (saved && data.students.includes(saved)) {
+      studentName = saved;
+      document.getElementById('loginOverlay').classList.remove('show');
+      renderStudent();
+    }
+  }
+
+  document.getElementById('syncInfo').textContent = '就绪';
+  fullRender();
+  startPoll();
+
+  // If not logged in and has login overlay visible
+  if (document.getElementById('loginOverlay').classList.contains('show')) {
+    setTimeout(() => document.getElementById('loginInput').focus(), 300);
+  }
+}
+
+initApp();
+</script>
+</body>
+</html>
